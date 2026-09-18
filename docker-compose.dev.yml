@@ -1,0 +1,15 @@
+services:
+  app:
+    image: node:22-alpine
+    container_name: md-edit-and-viewer-app-dev
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm dev"
+    volumes:
+      - ./app:/app
+      - md-edit-and-viewer_node_modules:/app/node_modules
+    ports:
+      - "${APP_PORT:-8090}:5173"
+    restart: unless-stopped
+
+volumes:
+  md-edit-and-viewer_node_modules:

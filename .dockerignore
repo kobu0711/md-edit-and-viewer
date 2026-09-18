@@ -1,0 +1,12 @@
+.git
+**/node_modules
+**/dist
+**/coverage
+**/.vite
+*.md
+.env
+.env.example
+docker-compose*.yml
+Dockerfile
+Makefile
+deploy.sh

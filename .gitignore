@@ -1,0 +1,15 @@
+# 環境変数（.env.example のみコミットする）
+.env
+
+# ログ
+*.log
+logs/
+
+# OS/エディタ
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# app/ 配下は app/.gitignore（node_modules, dist, coverage 等）を参照
