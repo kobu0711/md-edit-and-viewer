@@ -46,7 +46,12 @@ function ToggleGroupItem({
       data-slot="toggle-group-item"
       className={cn(
         buttonVariants({ variant: effectiveVariant, size: effectiveSize }),
-        'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10',
+        'rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10',
+        // TooltipTrigger asChild は data-state を "closed" で上書きしてしまうため、
+        // 選択中の判定には aria-checked / aria-pressed も併用する
+        'data-[state=on]:bg-primary data-[state=on]:text-primary-foreground',
+        'aria-checked:bg-primary aria-checked:text-primary-foreground',
+        'aria-pressed:bg-primary aria-pressed:text-primary-foreground',
         '-ml-px first:ml-0',
         className,
       )}
