@@ -165,6 +165,22 @@
 .md-preview ol {
   padding-left: 1.6em;
 }
+/* Tailwind の preflight が ol/ul の list-style を none にするため明示的に戻す */
+.md-preview ul {
+  list-style-type: disc;
+}
+.md-preview ul ul {
+  list-style-type: circle;
+}
+.md-preview ul ul ul {
+  list-style-type: square;
+}
+.md-preview ol {
+  list-style-type: decimal;
+}
+.md-preview li::marker {
+  color: var(--muted-foreground);
+}
 .md-preview li + li {
   margin-top: 0.25em;
 }
