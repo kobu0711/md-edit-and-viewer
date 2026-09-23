@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { extractToc } from '@/lib/markdown/toc'
+import { extractToc, type TocEntry } from '@/lib/markdown/toc'
 import { cn } from '@/lib/utils'
 
 interface TocPanelProps {
   content: string
-  onNavigate: (line: number) => void
+  onNavigate: (entry: TocEntry) => void
 }
 
 export function TocPanel({ content, onNavigate }: TocPanelProps) {
@@ -27,7 +27,7 @@ export function TocPanel({ content, onNavigate }: TocPanelProps) {
           <button
             key={`${entry.line}-${entry.id}`}
             type="button"
-            onClick={() => onNavigate(entry.line)}
+            onClick={() => onNavigate(entry)}
             style={{ paddingLeft: `${(entry.depth - 1) * 0.85 + 0.5}rem` }}
             className={cn(
               'text-muted-foreground hover:bg-accent hover:text-accent-foreground block w-full truncate rounded px-2 py-1 text-left text-xs',

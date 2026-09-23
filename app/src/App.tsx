@@ -17,6 +17,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useScrollSync } from '@/hooks/useScrollSync'
 import { useTheme } from '@/hooks/useTheme'
 import { buildStandaloneHtml, downloadHtmlFile } from '@/lib/exportHtml'
+import type { TocEntry } from '@/lib/markdown/toc'
 import {
   downloadTextFile,
   isFileSystemAccessSupported,
@@ -27,6 +28,9 @@ import {
 } from '@/lib/fileSystemAccess'
 import { useDocumentsStore } from '@/store/documentsStore'
 import { isDocumentDirty, type EditorDocument } from '@/types/document'
+
+/** 目次から飛んだ見出しの上に残す余白（見出しが上端に張り付かないように） */
+const TOC_SCROLL_MARGIN_PX = 16
 
 function stripExtension(name: string): string {
   return name.replace(/\.mdx?$/i, '')
@@ -65,8 +69,13 @@ export default function App() {
   // モバイル幅では分割表示を持たず、常にエディタ/プレビューいずれかのタブ表示にする
   const effectiveViewMode: ViewMode = isMobile && viewMode === 'split' ? 'editor' : viewMode
 
+  // プレビューのみ表示ではエディタは破棄されている。onCreateEditor で受け取った参照は
+  // 残ったままなので、表示中のときだけ有効な参照として扱う（破棄済みの view への空振りを防ぐ）
+  const liveEditorView = effectiveViewMode === 'preview' ? null : editorView
+  const previewVisible = effectiveViewMode !== 'editor'
+
   useScrollSync({
-    editorView,
+    editorView: liveEditorView,
     previewViewport,
     enabled: scrollSyncEnabled && effectiveViewMode === 'split',
   })
@@ -179,17 +188,28 @@ export default function App() {
   )
 
   const handleTocNavigate = useCallback(
-    (line: number) => {
-      if (!editorView) return
-      const clamped = Math.min(Math.max(line, 1), editorView.state.doc.lines)
-      const pos = editorView.state.doc.line(clamped).from
-      editorView.dispatch({
+    (entry: TocEntry) => {
+      // プレビューは見出しの id へ直接スクロールする（スクロール同期の有無に依存しない）。
+      // id は rehype-sanitize の DOM clobbering 対策で user-content- 接頭辞が付いている
+      if (previewVisible && previewViewport) {
+        const heading = document.getElementById(`user-content-${entry.id}`)
+        if (heading && previewViewport.contains(heading)) {
+          const offset =
+            heading.getBoundingClientRect().top - previewViewport.getBoundingClientRect().top
+          previewViewport.scrollBy({ top: offset - TOC_SCROLL_MARGIN_PX })
+        }
+      }
+
+      if (!liveEditorView) return
+      const doc = liveEditorView.state.doc
+      const pos = doc.line(Math.min(Math.max(entry.line, 1), doc.lines)).from
+      liveEditorView.dispatch({
         selection: { anchor: pos, head: pos },
         effects: EditorView.scrollIntoView(pos, { y: 'start' }),
       })
-      editorView.focus()
+      liveEditorView.focus()
     },
-    [editorView],
+    [liveEditorView, previewViewport, previewVisible],
   )
 
   if (!activeDoc) {
@@ -244,7 +264,7 @@ export default function App() {
         onRename={renameDocument}
       />
 
-      <EditorToolbar editorView={editorView} />
+      <EditorToolbar editorView={liveEditorView} />
 
       <div className="flex min-h-0 flex-1">
         {tocOpen && !isMobile && (
